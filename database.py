@@ -1,6 +1,8 @@
 import sqlalchemy as db
 from sqlalchemy.ext.declarative import delarative_base
 
+Base = declarative_base()
+
 class Player(Base):
     __tablename__ = "player"
     id = db.Column(db.Integer, primary_key=True)

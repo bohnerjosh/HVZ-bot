@@ -88,8 +88,7 @@ class Database(object):
         
     def init_player(self, username, killcode):
         player = Player(username, killcode)
-        print(player.id)
-        time = datetime.now().strftime("%m-%d-%Y %H:%M")
+        time = datetime.now().strftime("%m%d%H%M%S")
         
         self.session.add(player)
         self.session.commit()
@@ -105,3 +104,17 @@ class Database(object):
     def human_to_zombie(self, player):
         player.status = "Zombie"
         self.session.commit()
+
+        statement = db.select(Stat).filter_by(u_id=player.id)
+        stat = self.un_tuple(self.session.execute(statement))[0]
+        
+        old_date = datetime.strptime(stat.human_time, "%m%d%H%M%S")
+        today = datetime.now().strftime("%m%d%H%M%S")
+        today = datetime.strptime(today, "%m%d%H%M%S")
+        new_date = today-old_date
+
+        stat.human_time = str(new_date)
+
+        self.session.commit()
+
+        print(stat.human_time)

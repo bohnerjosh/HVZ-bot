@@ -14,29 +14,17 @@ class Player(Base):
     status = db.Column(db.String(6), unique=False, nullable=False)
     killcode = db.Column(db.String(6), unique=True, nullable=False)
     failedcodes = db.Column(db.Integer, primary_key=False)
-
+    human_time = db.Column(db.String(10), unique=False, nullable=True)
+    
     def __init__(self, username, killcode):
         self.username = username
         self.status = "Human"
         self.killcode = killcode
         self.failedcodes = 0
+        self.human_time = datetime.now().strftime("%m%d%H%M%S")
 
     def __repr__(self):
         return self.username
-
-class Stat(Base):
-    __tablename__ = "Stats"
-    id = db.Column(db.Integer, primary_key=True)
-    u_id = db.Column(db.Integer, db.ForeignKey("Player.id"), nullable=False)
-    human_time = db.Column(db.String(10), unique=False, nullable=True)
-    stuns = db.Column(db.Integer, nullable=True)
-    tagged_humans = db.Column(db.Integer, nullable=True)
-    
-    def __init__(self, u_id, human_time):
-        self.u_id = u_id
-        self.human_time = human_time
-        self.stuns = 0
-        self.tagged_humans = 0
 
 class Mission(Base):
     __tablename__ = "Missions"
@@ -53,6 +41,26 @@ class Mission(Base):
         self.path = path
         self.zombie_victory = 0
         self.human_victory = 0
+
+class Stun(Base):
+    __tablename__ = "Stun"
+    id = db.Column(db.Integer, primary_key=True)
+    shooter_id = db.Column(db.Integer, db.ForeignKey("Player.id"), nullable=False)
+    victim_id = db.Column(db.Integer, db.ForeignKey("Player.id"), nullable=False)
+
+    def __init__(self, shooter_id, victim_id):
+        self.shooter_id = shooter_id
+        self.victim_id = victim_id
+
+class Tag(Base):
+    __tablename__ = "Tag"
+    id = db.Column(db.Integer, primary_key=True)
+    tagger_id = db.Column(db.Integer, db.ForeignKey("Player.id"), nullable=False)
+    victim_id = db.Column(db.Integer, db.ForeignKey("Player.id"), nullable=False)
+
+    def __init__(self, tagger_id, victim_id):
+        self.tagger_id = tagger_id
+        self.victim_id = victim_id
 
 class Database(object):
     def __init__(self, path):
@@ -82,39 +90,47 @@ class Database(object):
         statement = db.select(Player).filter_by(username=username)
         return self.un_tuple(self.session.execute(statement))
 
+    def has_user_id(self, u_id):
+        statement = db.select(Player).filter_by(id=u_id)
+        return self.un_tuple(self.session.execute(statement))
+
     def get_killcodes(self):
         statement = db.select(Player.killcode)
         return self.un_tuple(self.session.execute(statement).all())
         
     def init_player(self, username, killcode):
-        player = Player(username, killcode)
-        time = datetime.now().strftime("%m%d%H%M%S")
-        
+        player = Player(username, killcode) 
         self.session.add(player)
         self.session.commit()
+        print(player.human_time)
 
-        stat = Stat(player.id, time)
-        self.session.add(stat)
-        self.session.commit()
- 
     def has_user_code(self, code):
         statement = db.select(Player).filter_by(killcode=code)
         return self.un_tuple(self.session.execute(statement))
 
-    def human_to_zombie(self, player):
-        player.status = "Zombie"
+    def human_to_zombie(self, tagger_name, victim):
+        victim.status = "Zombie"
         self.session.commit()
 
-        statement = db.select(Stat).filter_by(u_id=player.id)
-        stat = self.un_tuple(self.session.execute(statement))[0]
-        
-        old_date = datetime.strptime(stat.human_time, "%m%d%H%M%S")
+        old_date = datetime.strptime(victim.human_time, "%m%d%H%M%S")
         today = datetime.now().strftime("%m%d%H%M%S")
         today = datetime.strptime(today, "%m%d%H%M%S")
         new_date = today-old_date
-
-        stat.human_time = str(new_date)
+        victim.human_time = str(new_date)
 
         self.session.commit()
+        
+        tagger = self.has_user(tagger_name)[0]
+        tag = Tag(tagger.id, victim.id)
+        self.session.add(tag)
+        self.session.commit()
 
-        print(stat.human_time)
+    def add_stun(self, shooter, victim):
+        
+        stun = Stun(shooter.id, victim.id)
+        self.session.add(stun)
+        self.session.commit()
+
+    def get_user_ids(self):
+        statement = db.select(Player)
+        return self.un_tuple(self.session.execute(statement).all())

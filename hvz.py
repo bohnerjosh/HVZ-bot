@@ -27,8 +27,8 @@ def create_user(username):
     print("Creating user...")
     
     # check to see if the user is already registered
-    result = db.has_user(username)
-    if len(result) > 0:
+    result = check_player(username)
+    if result:
         user = result[0]
         killcode = user.killcode
         print(f"That user already exists.")
@@ -71,10 +71,26 @@ def stun(message):
     db.add_stun(shooter, victim)
     return "ok"    
 
+def check_player(username):
+    result = db.has_user(username)
+    if len(result) > 0:
+        return True
+    return False
+
 def get_profile(server, username):
     for user in server.members:
         if str(user) == username:
             return user
+
+def get_time_alive(player):
+    if player.status == "Human":
+        old_date = datetime.strptime(player.human_time, "%m%d%H%M%S")
+        today = datetime.now().strftime("%m%d%H%M%S")
+        today = datetime.strptime(today, "%m%d%H%M%S")
+        new_date = str(today-old_date)
+        return new_date
+    else:
+        return player.human_time
 
 @client.event
 async def on_ready():
@@ -132,12 +148,52 @@ async def on_message(message):
             await message.channel.send(f"Logged stun")
     
     elif user_message.startswith("!ids"):
-        out_str = "Players and their ids:\n"
+        out_str = "```==Players and their ids==\n"
         result = db.get_user_ids()
         for player in result:
             out_str += "    " + str(player.id) + " : " + player.username + "\n"
 
-        out_str += "===END==="
+        out_str += "==END==```"
 
         await message.channel.send(out_str)
+
+    elif user_message.startswith("!stats"):
+        result = check_player(username)
+        if not result:
+            await message.channel.send("You are not registered. Please register to track stats") 
+        else:
+            await message.channel.send("Sending stats to DM")
+            player, tags, stuns, tagger = db.get_stats(username)
+            time_alive = get_time_alive(player)
+            
+            out_text = f"```==Player statistics for {player.username}==\n\n"
+            out_text += "   Current status: " + player.status + "\n"
+            out_text += "   Time as human: " + time_alive + "\n"
+            
+            if player.status == "Human":
+                out_text += "\n    --Stuns--\n"
+                if len(stuns) == 0:
+                    out_text += "   No data\n"
+                else:
+                    for player in stuns:
+                        out_text += f"    You stunned {player} {stuns[player]} time(s)\n"
+                out_text += "\n==END==```"
+
+            else:
+                out_text += "\n    --Stuns--\n"
+                for player in stuns:
+                     out_text += f"    You were stunned by {player} {stuns[player]} time(s)\n"
+                
+                out_text += "\n    --Tags--\n"
+                if len(tags) == 0:
+                    out_text += "    No data\n"
+                else:
+                    for player in tags:
+                        out_text += f"    You tagged {player} {tags[player]} time(s)\n"
+
+                out_text += f"\n    You were turned into a zombie by {tagger}\n"
+                out_text += "\n==END==```"
+
+            await message.author.send(out_text)
+
 client.run(TOKEN)

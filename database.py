@@ -134,3 +134,46 @@ class Database(object):
     def get_user_ids(self):
         statement = db.select(Player)
         return self.un_tuple(self.session.execute(statement).all())
+
+    def create_dict_stats(self, ids,_dict):
+        for _id in ids:
+            statement = db.select(Player.username).filter_by(id=_id)
+            user = self.un_tuple(self.session.execute(statement))[0]
+            if not user in _dict:
+                _dict[user] = 1
+            else:
+                _dict[user] += 1 
+        return _dict
+
+    def get_stats(self, username):
+        result = self.has_user(username)
+        statement = db.select(Player).filter_by(username=username)
+        player = self.un_tuple(self.session.execute(statement))[0]
+        stuns = {}
+        tags = {}
+        tagger = ""
+
+        if player.status == "Human":
+            statement = db.select(Stun.victim_id).filter_by(shooter_id=player.id)
+            s_ids = self.un_tuple(self.session.execute(statement).all())
+
+            stuns = self.create_dict_stats(s_ids, stuns) 
+            return player, tags, stuns, tagger
+        else:
+            statement = db.select(Stun.shooter_id).filter_by(victim_id=player.id)
+            s_ids = self.un_tuple(self.session.execute(statement).all())
+            
+            stuns = self.create_dict_stats(s_ids, stuns)
+
+            statement = db.select(Tag.victim_id).filter_by(tagger_id=player.id)
+            t_ids = self.un_tuple(self.session.execute(statement).all())
+     
+            stuns = self.create_dict_stats(t_ids, stuns)
+ 
+            statement = db.select(Tag.tagger_id).filter_by(victim_id=player.id)
+            OG_t_id = self.un_tuple(self.session.execute(statement))[0]
+            
+            statement = db.select(Player.username).filter_by(id=OG_t_id)
+            tagger = self.un_tuple(self.session.execute(statement))[0]
+
+            return player, tags, stuns, tagger

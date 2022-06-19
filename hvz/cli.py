@@ -258,6 +258,7 @@ class CLI(object):
             await ctx.send("You do not have permission to create missions") 
             return
 
+
         result = hvz.get_mission(mission_id)
         
         if result == "error":

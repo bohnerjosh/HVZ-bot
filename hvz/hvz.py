@@ -4,12 +4,19 @@ from datetime import datetime
 
 GUILD_ID = 871424085064810516
 
+ZOMBIE_WINS = ["Zombie", "Zombies", "zombie", "zombies"]
+HUMAN_WINS = ["Human", "Humans", "human", "humans"]
 
 class HVZ(object):
 
     def __init__(self, db, config):
         self.db = db
         self.config = config
+
+    def get_mission_id(self, filename):
+        dot = filename.find(".")
+        m_id = filename[:dot]
+        return m_id
 
     def generate_killcode(self, codes):
         code = "".join(choice(string.ascii_lowercase) for _ in range(6))
@@ -37,18 +44,16 @@ class HVZ(object):
     def zombieify(self, username, code):
         result = self.db.has_user_code(code)
         if not len(result) > 0:
-            return "error", "null"
+            return "error", None
 
         result = result[0]
-        self.db.human_to_zombie(username, result)    
+        transfer_result = self.db.human_to_zombie(username, result) 
+        if transfer_result == "error":
+            return "illegal_zombieify", None
+   
         return "ok", result
 
-    def stun(self, message_lst):
-        if len(message_lst) != 2:
-            return "msg_len"
-        shooter = message_lst[0]
-        victim = message_lst[1]
-
+    def stun(self, shooter, victim):
         verify_shooter = self.db.has_user_id(shooter)
         verify_victim = self.db.has_user_id(victim)
 
@@ -85,9 +90,16 @@ class HVZ(object):
         else:
             return player.human_time
 
-    def create_mission(self, text):
-        result = self.db.mission_init(text, self.config.mission_path)
-        return result
+    def handle_mission(self, filename, text):
+        mission_id = self.get_mission_id(filename)
+        result = self.db.verify_mission_id(mission_id)
+
+        if result == "error":
+            m_id = self.db.mission_init(text, self.config.mission_path)
+            return m_id, "init"
+        else:
+            m_id = self.db.modify_mission(text, result.id, self.config.mission_path)
+            return m_id, "modify"
 
     def get_mission(self, mission_id):
         result = self.db.verify_mission_id(mission_id)
@@ -101,3 +113,19 @@ class HVZ(object):
         discriminator = username[-4:]
         name = username[:-5]
         return name, discriminator
+
+    def determine_winner(self, mission_id, winner):
+        mission = self.db.verify_mission_id(mission_id)
+        if mission == "error":
+            return "invalid_mission"
+
+        if winner in ZOMBIE_WINS:
+            self.db.close_mission(mission, "Zombie")       
+            result = "Zombie"    
+        elif winner in HUMAN_WINS:
+            self.db.close_mission(mission, "Human")
+            result = "Human"
+        else:
+            return "invalid_winner"
+
+        return result

@@ -6,6 +6,9 @@ from itertools import chain
 from datetime import datetime
 from pathlib import Path
 
+ZOMBIE_WINS = ["Zombie", "Zombies", "zombie", "zombies"]
+HUMAN_WINS = ["Human", "Humans", "human", "humans"]
+
 Base = declarative_base()
 DEFAULT_DB_NAME = "db"
 
@@ -17,6 +20,8 @@ class Player(Base):
     killcode = db.Column(db.String(6), unique=True, nullable=False)
     failedcodes = db.Column(db.Integer, primary_key=False)
     human_time = db.Column(db.String(10), unique=False, nullable=True)
+    oz_pool = db.Column(db.Integer, nullable=False)
+    is_oz = db.Column(db.Integer, nullable=False)
     
     def __init__(self, username, killcode):
         self.username = username
@@ -24,6 +29,8 @@ class Player(Base):
         self.killcode = killcode
         self.failedcodes = 0
         self.human_time = datetime.now().strftime("%m%d%H%M%S")
+        self.oz_pool = 0
+        self.is_oz = 0
 
     def __repr__(self):
         return self.username
@@ -100,13 +107,17 @@ class Database(object):
         player = Player(username, killcode) 
         self.session.add(player)
         self.session.commit()
-        print(player.human_time)
+        print(player.username)
 
     def has_user_code(self, code):
         statement = db.select(Player).filter_by(killcode=code)
         return self.un_tuple(self.session.execute(statement))
 
     def human_to_zombie(self, tagger_name, victim):
+        tagger = self.has_user(tagger_name)[0]
+        if tagger.status == "Human":
+            return "error"
+
         victim.status = "Zombie"
         self.session.commit()
 
@@ -118,7 +129,6 @@ class Database(object):
 
         self.session.commit()
         
-        tagger = self.has_user(tagger_name)[0]
         tag = Tag(tagger.id, victim.id)
         self.session.add(tag)
         self.session.commit()
@@ -144,6 +154,7 @@ class Database(object):
 
     def get_stats(self, username):
         result = self.has_user(username)
+        self.missions_channel = "NULL"
         statement = db.select(Player).filter_by(username=username)
         player = self.un_tuple(self.session.execute(statement))[0]
         stuns = {}
@@ -175,6 +186,11 @@ class Database(object):
 
             return player, tags, stuns, tagger
 
+    def modify_mission(self, mission_text, mission_id, default_path):
+        with open(str(self.mission_path / str(mission_id)), "w") as mFile:
+            mFile.write(mission_text)
+        return mission_id
+
     def mission_init(self, mission_text, default_path):
         mission = Mission()
         self.session.add(mission)
@@ -190,7 +206,7 @@ class Database(object):
         mission = self.un_tuple(self.session.execute(statement))
         if len(mission) == 0:
             return "error"
-        return "ok"
+        return mission[0]
 
     def get_missions(self):
         statement = db.select(Mission)
@@ -211,3 +227,19 @@ class Database(object):
         with open(str(self.mission_path / m_id), "r") as mFile:
             text = mFile.read()
         return text
+
+    def close_mission(self, mission, winner):
+        if winner == "Zombie":
+            mission.zombie_victory = 1
+
+        elif winner == "Human":
+            mission.human_victory = 1
+
+        self.session.commit()
+    
+    def add_to_OZ_lst(self, username):
+        statement = db.select(Player).filter_by(username=username)
+        player = self.un_tuple(self.session.execute(statement))[0]
+
+        player.oz_pool = 1
+        self.session.commit()

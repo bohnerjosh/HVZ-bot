@@ -42,6 +42,18 @@ class CLI(object):
 
     # Command that initializes the player within HVZ. Generates a killcode and sends it
     #   to the player via DM
+    async def profile_zombieify(self, ctx, username):
+        
+        # take away the human role and add the zombie role to the player
+        guild = ctx.guild
+        name, disc = hvz.name_split(username) # get the name and discriminator of discord username
+
+        discord_profile = discord.utils.get(guild.members, name=victim_name, discriminator=disc)
+        zombie_role = discord.utils.get(guild.roles, name="Zombie")
+        human_role = discord.utils.get(guild.roles, name="Human")
+
+        return discord_profile
+
     @client.command(name="create", help="Register for HVZ")
     async def create_user(ctx):
         username = str(ctx.author)
@@ -90,17 +102,13 @@ class CLI(object):
             await ctx.send("Humans can't turn people into zombies")
         else:
             await ctx.send(f"Zombieified {victim.username}")
-
-            # take away the human role and add the zombie role to the player
             guild = ctx.guild
-            victim_name, disc = hvz.name_split(victim.username) # get the name and discriminator of discord username
-
-            victim_profile = discord.utils.get(guild.members, name=victim_name, discriminator=disc)
+            name, disc = hvz.name_split(victim.username) # get the name and discriminator of discord username
+            discord_profile = discord.utils.get(guild.members, name=name, discriminator=disc)
             zombie_role = discord.utils.get(guild.roles, name="Zombie")
             human_role = discord.utils.get(guild.roles, name="Human")
-
-            await victim_profile.remove_roles(human_role)
-            await victim_profile.add_roles(zombie_role)
+            await discord_profile.remove_roles(human_role)
+            await discord_profile.add_roles(zombie_role)
 
     # Command that allows humans to track zombies that they stun
     @client.command(name="stun", help="Report a stunned zombie")
@@ -258,7 +266,6 @@ class CLI(object):
             await ctx.send("You do not have permission to create missions") 
             return
 
-
         result = hvz.get_mission(mission_id)
         
         if result == "error":
@@ -297,8 +304,119 @@ class CLI(object):
         channel = client.get_channel(config.params["missions_channel"]) 
         await channel.send(out_text)
 
+    
+    @client.command(name="createOZ", help="Randomly select an OZ from a pool of volunteers")
+    async def create_OZ(ctx):
+        username = str(ctx.author)
+        if not username in MODS:
+            await ctx.send("You do not have permission to change prefix") 
+            return
+
+        OZ = hvz.choose_OZ()
+        if OZ is None:
+            await ctx.send("OZ pool is empty. Have at least 1 player volunteer before choosing an OZ") 
+            return
+        
+        user = OZ.username
+        await ctx.send(f"The OZ has been chosen! It is {user}!")
+        
+        await ctx.send(f"User will be notified and their status will change")
+        db.OZ_status(OZ)
+
+        guild = ctx.guild
+
+        name, disc = hvz.name_split(user) # get the name and discriminator of discord username
+        discord_profile = discord.utils.get(guild.members, name=name, discriminator=disc)
+        zombie_role = discord.utils.get(guild.roles, name="Zombie")
+        human_role = discord.utils.get(guild.roles, name="Human")
+        await discord_profile.remove_roles(human_role)
+        await discord_profile.add_roles(zombie_role)
+ 
+        await discord_profile.send(":rotating_light: **You have been chosen to be the OZ!** :rotating_light:")
+        await discord_profile.send("If you have questions pertaining to the rules of being OZ, be sure to ping the mods")
+        await discord_profile.send("Good luck!")
+
+     
+    @client.command(name="OZPool", help="Modify a user pertaining to the OZ pool")
+    async def change_prefix(ctx, *args):
+        username = str(ctx.author)
+        if len(args) < 2:
+            await ctx.send("Invalid command syntax")
+            return
+        
+        if not username in MODS:
+            await ctx.send("You do not have permission to change OZ Pool settings") 
+            return
+
+        try:       
+            subcommand = args[0].lower()
+        except:
+            await ctx.send("Invalid command syntax")
+            await ctx.send("Choices are ``poolremove``, ``pooladd``, ``makeOZ``, and ``takeOZ``")
+            return
+
+        value = args[1]
+
+        result = hvz.check_player(value)
+        
+        if not result:
+            await ctx.send(f"Could not find user ``{value}``") 
+            return
+        player = result[0]
+        
+        if "poolremove" in subcommand:
+            if not player.oz_pool == 1:
+                await ctx.send("Player is not in the OZ pool")
+                return
+            hvz.remove_from_OZ_pool(player)
+
+        elif "pooladd" in subcommand:
+            if player.is_oz_pool == 1:
+                await ctx.send("Player is already in the OZ pool")
+                return
+            db.add_to_OZ_lst(player.username)
+
+        elif "makeoz" in subcommand:
+            if player.is_oz == 1:
+                await ctx.send("That player is already the OZ")
+                return
+
+            db.OZ_status(player)
+            guild = ctx.guild
+
+            name, disc = hvz.name_split(player.username) # get the name and discriminator of discord username
+            discord_profile = discord.utils.get(guild.members, name=name, discriminator=disc)
+            zombie_role = discord.utils.get(guild.roles, name="Zombie")
+            human_role = discord.utils.get(guild.roles, name="Human")
+            await discord_profile.remove_roles(human_role)
+            await discord_profile.add_roles(zombie_role)
+            
+            await discord_profile.send(":rotating_light: **You have been chosen to be the OZ by a MOD!** :rotating_light:")
+   
+        elif "takeoz" in subcommand:
+            if not player.is_oz == 1:
+               await ctx.send("Player is not the current OZ") 
+               return
+
+            db.take_OZ(player)
+
+            guild = ctx.guild
+            oz_name, oz_discrim = hvz.name_split(player.username)
+            player_obj = discord.utils.get(guild.members, name=oz_name, discriminator=oz_discrim)
+           
+            zombie_role = discord.utils.get(guild.roles, name="Zombie")
+            human_role = discord.utils.get(guild.roles, name="Human")
+
+            await player_obj.remove_roles(zombie_role)
+            await player_obj.add_roles(human_role)
+            await player_obj.send("You are no longer OZ and are a regular human")
+        else:
+            await ctx.send("Invalid command syntax")
+            await ctx.send("Choices are ``poolremove``, ``pooladd``, ``makeOZ``, and ``takeOZ``")
+
+ 
     @client.command(name="prefix", help="set the box prefix")
-    async def live_mission(ctx, *args):
+    async def change_prefix(ctx, *args):
         if len(args) < 1:
             await ctx.send("Invalid command syntax")
             return
@@ -328,6 +446,7 @@ class CLI(object):
             usermatch = db.has_user(username)
             if len(usermatch) > 0 and isinstance(reaction.message.channel, discord.channel.DMChannel):
                 db.add_to_OZ_lst(username)
-                await user.send("You have been added to the list of potential humans to be the OZ")
+                await user.send(":warning: You have been added to the list of potential humans to be the OZ :warning:")
                 await user.send("You will be sent a message at the beginning of the game if you are chosen")
+                await user.send("If this was done in error or you change your mind, ping a mod")
         

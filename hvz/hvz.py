@@ -129,3 +129,15 @@ class HVZ(object):
             return "invalid_winner"
 
         return result
+
+    def choose_OZ(self):
+        volunteers = self.db.get_OZ_pool()
+        if len(volunteers) == 0:
+            return None
+
+        return choice(volunteers)
+
+    def remove_from_OZ_pool(self, player):
+        self.db.rempve_OZ_pool(player)
+
+  

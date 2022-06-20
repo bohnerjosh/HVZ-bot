@@ -113,6 +113,12 @@ class Database(object):
         statement = db.select(Player).filter_by(killcode=code)
         return self.un_tuple(self.session.execute(statement))
 
+    def OZ_status(self, player):
+        player.status = "Zombie"
+        player.human_time = "0"
+        player.is_oz = 1
+        self.session.commit()
+
     def human_to_zombie(self, tagger_name, victim):
         tagger = self.has_user(tagger_name)[0]
         if tagger.status == "Human":
@@ -242,4 +248,17 @@ class Database(object):
         player = self.un_tuple(self.session.execute(statement))[0]
 
         player.oz_pool = 1
+        self.session.commit()
+
+    def get_OZ_pool(self):
+        statement = db.select(Player).filter_by(oz_pool=1)
+        return self.un_tuple(self.session.execute(statement).all())
+
+    def remove_from_OZ_pool(self, player):
+        player.oz_pool = 0
+        self.session.commit()
+
+    def take_OZ(self, player):
+        player.is_oz = 0
+        player.status = "Human"
         self.session.commit()

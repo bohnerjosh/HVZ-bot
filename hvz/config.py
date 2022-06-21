@@ -6,10 +6,11 @@ DEFAULT_MISSION_FOLDER_NAME = "missions"
 DEFAULT_DATA_FILE_NAME = "data.json"
 DEFAULT_PREFIX = "!"
 DEFAULT_DATA_FILE_CONTENTS = {
+    "firsttimesetup": "True",
     "prefix" : DEFAULT_PREFIX,
     "mod_channel" : "0", 
     "missions_channel" : "0",
-    "mods" : ["The_Pro_Legion#7667"]
+    "mods" : []
 }
 
 class Config(object):
@@ -35,7 +36,10 @@ class Config(object):
     def load_data(self):
         with open(str(self.datapath)) as f:
             self.params = json.load(f)
-
+        # cast channel ids to ints
+        self.params["mod_channel"] = int(self.params["mod_channel"])
+        self.params["missions_channel"] = int(self.params["missions_channel"])
+    
     def write_data(self, data=None):
         # serialize the dictionary
         json_obj = json.dumps(self.params, indent=4)
@@ -44,7 +48,21 @@ class Config(object):
         with open(str(self.datapath), "w+") as f:
              f.write(json_obj)
 
-    def update_prefix(self, prefix):
-        self.params["prefix"] = prefix
+    def update_params(self, **kwargs):
+        if "mods" in kwargs:
+            self.params["mods"].append(kwargs["mods"])
+            if self.params["firsttimesetup"] == "True":
+                self.params["firsttimesetup"] = "False"
+        else:
+            for arg in kwargs:
+                # cast channel ids to ints
+                if arg == "mod_channel" or arg == "missions_channel":
+                    self.params[arg] = int(kwargs[arg])
+                else:
+                    self.params[arg] = kwargs[arg]
         self.write_data()
+
+    def reset_config(self):
+        self.datapath.unlink()
+        self.check_valid()
         

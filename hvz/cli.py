@@ -233,7 +233,7 @@ class CLI(object):
         out_text += "==END OF MISSIONS==```"
         await ctx.send(out_text)
     
-    @client.command(name="m-get", help="Get a singular mission")
+    @client.command(name="missionget", help="Get a singular mission")
     async def get_mission(ctx, *args):
         if len(args) < 1:
             await ctx.send("Invalid mission get syntax")
@@ -253,7 +253,7 @@ class CLI(object):
         
         await ctx.send(out_text)
 
-    @client.command(name="make-live", help="Get all missions")
+    @client.command(name="makelive", help="Make a mission live")
     async def live_mission(ctx, *args):
         if len(args) < 1:
             await ctx.send("Invalid live mission syntax")
@@ -277,7 +277,7 @@ class CLI(object):
         channel = client.get_channel(config.params["missions_channel"]) 
         await channel.send(out_text)
 
-    @client.command(name="m-end", help="Get all missions")
+    @client.command(name="missionend", help="End a mission")
     async def mission_end(ctx, *args):
         if len(args) < 2:
             await ctx.send("Invalid live mission syntax")
@@ -431,9 +431,71 @@ class CLI(object):
         if not username in MODS:
             await ctx.send("You do not have permission to change the bot command prefix") 
             return
-        config.update_prefix(prefix)
-        ctx.send(f"Prefix changed to {prefix}. Restart the bot to apply this change")
+        config.update_params(prefix=prefix)
+        await ctx.send(f"Prefix changed to {prefix}. Restart the bot to apply this change")
 
+    @client.command(name="setmodchannel", help="set the id for the mods channel")
+    async def change_mod_channel(ctx, *args):
+        username = str(ctx.author)
+        if len(args) < 1:
+            await ctx.send("Invalid command syntax")
+            return
+
+        if not username in MODS:
+            await ctx.send("You do not have permission to set the mod channel") 
+            return
+
+        channel_id = args[0]
+        config.update_params(mod_channel=channel_id)
+        await ctx.send(f"Mod channel changed to {channel_id}")
+
+    @client.command(name="setmissionchannel", help="set the id for the missions channel")
+    async def change_mission_channel(ctx, *args):
+        username = str(ctx.author)
+        if len(args) < 1:
+            await ctx.send("Invalid command syntax")
+            return
+
+        if not username in MODS:
+            await ctx.send("You do not have permission to set the mission channel") 
+            return
+
+        channel_id = args[0]
+        config.update_params(missions_channel=channel_id)
+        await ctx.send(f"Missions channel changed to {channel_id}")
+
+    @client.command(name="addmod", help="Add profile to mods list")
+    async def change_mission_channel(ctx, *args):
+        username = str(ctx.author)
+        if len(args) < 1:
+            await ctx.send("Invalid command syntax")
+            return
+
+        if not username in MODS and config.params["firsttimesetup"] == "False":
+            await ctx.send("You do not have permission to add to the mods list") 
+            return
+
+        user = args[0]
+        if user in config.params["mods"]:
+            await ctx.send("{user} is already a moderator")
+            return 
+        
+        config.update_params(mods=user)
+        await ctx.send(f"Added {user} as a moderator")
+
+    @client.command(name="reset", help="Reset the config file")
+    async def change_mission_channel(ctx, *args):
+        username = str(ctx.author)
+        if len(args) < 1:
+            await ctx.send("Invalid command syntax")
+            return
+
+        if not username in MODS:
+            await ctx.send("You do not have permission to reset the config file") 
+            return
+
+        config.reset_config()
+        
     @client.event
     async def on_message(message):
 
@@ -449,4 +511,3 @@ class CLI(object):
                 await user.send(":warning: You have been added to the list of potential humans to be the OZ :warning:")
                 await user.send("You will be sent a message at the beginning of the game if you are chosen")
                 await user.send("If this was done in error or you change your mind, ping a mod")
-        

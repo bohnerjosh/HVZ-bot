@@ -65,24 +65,36 @@ Below is a full list of the commands of the bot with a link to further reading o
 To use a command, invoke the bot using its prefix before a message. By default, the bot's prefix is ``!``.
   
   
-  
-### Moderator commands
-* addmod
-* createOZ
-* makelive
-* missionend
-* mission
-* missions
-* missionget
-* OZpool
-* prefix
-* reset
-* setmissionschannel
-* setmodchannel
 
-### Player Commands
-* create
-* code
-* ids
-* stats
-* stun
+### All Moderator Commands
+* [addmod](#addmod)
+* [createOZ](#createOZ)
+* [makelive](#makelive)
+* [missionend](#missionend)
+* [mission](#mission)
+* [missions](#missions)
+* [missionget](#missionget)
+* [OZpool](#ozpool)
+* [prefix](#prefix)
+* [reset](#reset)
+* [setmissionschannel](#setmissionchannel)
+* [setmodchannel](#setmodchannel)
+
+### All Player Commands
+* [create](#create)
+* [code](#code)
+* [ids](#ids)
+* [stats](#stats)
+* [stun](#stun)
+
+## Moderator Commands
+### addmod
+Allows a moderator to allow other discord users to perform moderator commands. Only give this permission to users that need it.
+ 
+```!addmod <USERNAME>```
+where ``<USERNAME>`` is the user's full discord username (name#1234)
+ 
+###  createOZ
+Allows a moderator to 
+## Player Commands
+asdf

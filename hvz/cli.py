@@ -246,6 +246,7 @@ class CLI(object):
         # print out missions
         for mission in missions:
             out_text += f"id: {mission} | header text:\n"
+        # verify username
             out_text += missions[mission] + "\n\n"
 
         out_text += "==END OF MISSIONS==```"
@@ -521,7 +522,7 @@ class CLI(object):
 
     # allows mods to set the missions channel. This is done during first time
         # setup, and is where all mission appear to humans and zombies
-    @client.command(name="setmissionchannel", help="set the id for the missions channel")
+    @client.command(name="setmissionschannel", help="set the id for the missions channel")
     async def change_mission_channel(ctx, *args):
         # verify command syntax and that user is a mod
         username = str(ctx.author)

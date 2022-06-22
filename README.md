@@ -33,7 +33,7 @@ source blurg.env
 
 ## First time setup
 
-Now that the bot is running, you have to perform some setup to make sure your bot sends the correct information to the correct channels in your discord server. You also need to identify yourself as a moderator to the bot so you can perform the other setup commands.
+Now that the bot is running, you have to perform some setup to make sure your bot sends the correct information to the correct channels in your discord server. You also need to identify yourself as a moderator to the bot so you can perform the other setup commands. You also need to make 2 roles in your discord server: ``Human`` and ``Zombie``.
 
 ### Becoming a moderator
 Copy your full discord username (username#1234 on lower left) and paste the following command:
@@ -54,7 +54,7 @@ In your mod channel, type the following command:
 where ``<ID>`` is the id of the channel you copied. You can paste it from your clipboard and hit enter to send the command. A confirmation message should appear if the command was successful.
   
 To set your missions, channel, follow the same steps. Copy the id of the channel on the left in the list of text channels, and enter the command below in your moderation channel:
-```!setmissionchannel <ID>```
+```!setmissionschannel <ID>```
 where ``<ID>`` is the id of the channel you copied. Paste it and hit enter. 
   
 ## Allowing players to join
@@ -64,11 +64,9 @@ To allow players to register for your game, simply have them join your discord s
 Below is a full list of the commands of the bot with a link to further reading of how to use each command.
 To use a command, invoke the bot using its prefix before a message. By default, the bot's prefix is ``!``.
   
-  
-
 ### All Moderator Commands
 * [addmod](#addmod)
-* [createOZ](#createOZ)
+* [createOZ](#createoz)
 * [makelive](#makelive)
 * [missionend](#missionend)
 * [mission](#mission)
@@ -77,7 +75,7 @@ To use a command, invoke the bot using its prefix before a message. By default, 
 * [OZpool](#ozpool)
 * [prefix](#prefix)
 * [reset](#reset)
-* [setmissionschannel](#setmissionchannel)
+* [setmissionschannel](#setmissionschannel)
 * [setmodchannel](#setmodchannel)
 
 ### All Player Commands
@@ -92,9 +90,91 @@ To use a command, invoke the bot using its prefix before a message. By default, 
 Allows a moderator to allow other discord users to perform moderator commands. Only give this permission to users that need it.
  
 ```!addmod <USERNAME>```
+ 
 where ``<USERNAME>`` is the user's full discord username (name#1234)
  
-###  createOZ
-Allows a moderator to 
-## Player Commands
+### createOZ
+Allows a moderator to choose an OZ from a pool of volunteers at the beginning of the game. Players opt-in by reacting to a message sent in their DMs when they register for the game. This is to keep those who volunteer anonymous.
+ 
+```!createOZ```
+ 
+### makelive
+Sends mission information to the "missions" channel defined during setup. This makes the mission "live".
+ 
+```!makelive <ID>```
+ 
+where <ID> is the mission ID. You can get the mission id with [missions](#missions).
+ 
+### missionend
+"Ends" an active mission and allows a mod to declare a winner for a role defined by a moderator.
+ 
+```!missionend <WINNER>```
+ 
+where ```<WINNER>``` is ```Zombie``` or ```Human```.
+ 
+### mission
+Allows a moderator to upload missions to the discord bot to create a new mission or modify an existing mission.
+To upload a mission, place the text for your mission into a plaintext file, and name that file a number that represents what mission number it is. This is the mission's ID. 
+To upload a mission, drag the file with the mission text into the mod channel you created, and in the optional field for text when you upload the document, type ```!mission```.
+
+Do this every time you make a modification for a mission to update it for the bot. Make sure the mission id is the same.
+ 
+### missions
+Allows a moderator to see all missions uploaded to the bot along with their ids. Only shows mission text up to the first newline to save space on the screen.
+ 
+```!missions```
+ 
+### missionget
+Allows a moderator to see the entire contents of a mission's text via its id. 
+ 
+```!missionget <ID>```
+ 
+where ```<ID>``` is the mission id of the mission.
+ 
+### OZpool
+Allows a moderator to manually change the OZpool status of a player.
+Subcommands:
+**poolremove** - manually removes a player from the OZpool
+ 
+```!OZpool poolremove <NAME>```
+ 
+ where ```<NAME>``` is the name of the player (user#1234).
+ 
+ **pooladd** - manually add a player to the OZpool
+ 
+ ```!OZpool pooladd <NAME>```
+ 
+ where ```<NAME>``` is the name of a player (user#1234).
+
+ **makeoz** - forces a player to become the OZ
+ 
+ ```!OZpool makeoz <NAME>```
+ 
+ where ```<NAME>``` is the name of a player (user#1234).
+ 
+ **takeoz** - removes OZ status from a player
+ 
+ ```!OZpool takeoz <NAME>```
+ 
+ where ```<NAME>``` is the name of a player (user#1234).
+
+ 
+ ### prefix
+ Allows a moderator to change the prefix used to invoke the bot. You MUST restart the bot for this change to take effect.
+ 
+ ```!prefix <PREFIX>```
+ 
+ where ```<PREFIX>``` is a single character.
+ 
+ ### reset
+ Use this command to reset the config file. You MUST perform first time setup again once you run this command.
+ 
+ ```!reset```
+ 
+ ### setmissionschannel
+ See first time setup
+ 
+ ### setmodchannel
+ See first time setup
+ ## Player Commands
 asdf

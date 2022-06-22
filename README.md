@@ -80,7 +80,7 @@ To use a command, invoke the bot using its prefix before a message. By default, 
 * setmissionschannel
 * setmodchannel
 
-# Player Commands
+### Player Commands
 * create
 * code
 * ids

@@ -176,5 +176,39 @@ Subcommands:
  
  ### setmodchannel
  See first time setup
+ 
+ 
  ## Player Commands
-asdf
+ 
+ ### create
+ Allows a user to register for participation in HVZ. Also includes a response from the bot that allows a player to have a chance of being the OZ. If the player wants to opt-in, have them react to the checkmark on the message they get when they register.
+ 
+ This command generates a killcode for a user, which is sent to their DMs. **DO NOT SHARE THIS CODE WITH ANYONE**. It is used to identify players when they get transformed into a zombie.
+ 
+ ```!create```
+ 
+ ### code
+ Allows a zombie to convert a human to a zombie when they are tagged. **Note: Humans cannot use this command, and the person tagged must be human.**
+ Requires the tagged player's killcode.
+ 
+```!code <CODE>```
+
+where ```<CODE>``` is the tagged player's killcode.
+
+### ids
+Allows a player to get all player's internal ids. This is for use of the stun command so players can refer to each other by id, making command typing faster.
+
+```ids```
+
+### stats
+Generates game statistics for a player. Can be generated at any time, but it is recommended that players wait until the end of the game to see their stats.
+
+```!stats```
+
+### stun
+
+Allows humans to keep track of zombies they have stunned. Uses a player's internal ID (from the ```ids``` commmand) to track stuns.
+
+```!stun <SHOOTER_ID> <VICTIM_ID>```
+
+where ```<SHOOTER_ID>``` is the human's internal id, and ```<VICTIM_ID>``` is the stunned player's internal id.

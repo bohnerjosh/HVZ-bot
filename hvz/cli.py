@@ -133,8 +133,8 @@ class CLI(object):
     @client.command(name="ids", help="Get ids of users")
     async def get_ids(ctx):
         out_str = "```==Players and their ids==\n"
-        # grab ids internally
-        result = db.get_user_ids()
+        # grab players internally
+        result = db.get_users()
 
         # print the ids out
         for player in result:
@@ -346,6 +346,51 @@ class CLI(object):
         channel = client.get_channel(config.params["missions_channel"]) 
         await channel.send(out_text)
 
+    @client.command(name="starthvz", help="Sets the start time for being human for stats, and chooses an OZ")
+    async def start_game(ctx):
+        username = str(ctx.author)
+        if not username in MODS:
+            await ctx.send("You do not have permission to start the game") 
+            return
+
+        # update player's human_time to current time
+        db.set_default_human_time()
+
+        # choose an OZ
+        OZ = hvz.choose_OZ()
+
+        # if the volunteer pool is empty raise an error
+        if OZ is None:
+            await ctx.send("OZ pool is empty. Have at least 1 player volunteer before choosing an OZ") 
+            return
+        
+        # notify mods a user has been chosen
+        user = OZ.username
+        await ctx.send(f"The OZ has been chosen! It is {user}!")
+        
+        await ctx.send(f"User will be notified and their status will change")
+        db.OZ_status(OZ)
+
+        guild = ctx.guild # the discord server
+
+        # get chosen player's discord profile, and change their roles
+        name, disc = hvz.name_split(user) # get the name and discriminator of discord username
+        
+        discord_profile = discord.utils.get(guild.members, name=name, discriminator=disc)
+        zombie_role = discord.utils.get(guild.roles, name="Zombie")
+        human_role = discord.utils.get(guild.roles, name="Human")
+        await discord_profile.remove_roles(human_role)
+        await discord_profile.add_roles(zombie_role)
+ 
+        # Notify the player they have been chosen to be the OZ
+        await discord_profile.send(":rotating_light: **You have been chosen to be the OZ!** :rotating_light:")
+        await discord_profile.send("If you have questions pertaining to the rules of being OZ, be sure to ping the mods")
+        await discord_profile.send("Good luck!")
+
+        channel = client.get_channel(config.params["missions_channel"]) 
+        out_text = "***THE GAME HAS BEGUN! GOOD LUCK!***"
+        await channel.send(out_text)
+    
     # Command used by mods to choose a OZ from a pool of volunteers at the beginning of the game
     @client.command(name="createOZ", help="Randomly select an OZ from a pool of volunteers")
     async def create_OZ(ctx):

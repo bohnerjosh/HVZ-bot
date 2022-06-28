@@ -30,7 +30,7 @@ class Player(Base):
         self.status = "Human"
         self.killcode = killcode
         self.failedcodes = 0
-        self.human_time = datetime.now().strftime("%m%d%H%M%S")
+        self.human_time = "0"
         self.oz_pool = 0
         self.is_oz = 0
 
@@ -166,7 +166,7 @@ class Database(object):
         self.session.commit()
 
     # returns the internal ids of all Player objects
-    def get_user_ids(self):
+    def get_users(self):
         statement = db.select(Player)
         return self.un_tuple(self.session.execute(statement).all())
 
@@ -308,3 +308,9 @@ class Database(object):
         player.is_oz = 0
         player.status = "Human"
         self.session.commit()
+
+    def set_default_human_time(self):
+        users = self.get_users()
+        for user in users:
+            user.human_time = datetime.now().strftime("%m%d%H%M%S")
+            self.session.commit()

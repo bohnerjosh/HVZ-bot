@@ -77,6 +77,7 @@ To use a command, invoke the bot using its prefix before a message. By default, 
 * [reset](#reset)
 * [setmissionschannel](#setmissionschannel)
 * [setmodchannel](#setmodchannel)
+* [starthvz](#starthvz)
 
 ### All Player Commands
 * [create](#create)
@@ -177,6 +178,10 @@ Subcommands:
  ### setmodchannel
  See first time setup
  
+ ### starthvz
+ Allows a mod to start the game. When this command runs, all player's 'human_time' metric is set to the current time, and a OZ is chosen.
+ 
+ ```!starthvz```
  
  ## Player Commands
  

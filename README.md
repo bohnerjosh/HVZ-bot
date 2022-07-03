@@ -17,7 +17,7 @@ git clone https://github.com/bohnerjosh/HVZ-bot
 cd HVZ-bot
 virtualenv -p python3 env
 ```
-open ``hvz.env`` with your favorite command line text editor and replace "YOUR_TOKEN_HERE" with your bot's token. **DO NOT SHARE THIS TOKEN WITH ANYONE.**
+Open ``hvz.env`` with your favorite command line text editor and replace "YOUR_TOKEN_HERE" with your bot's token. **DO NOT SHARE THIS TOKEN WITH ANYONE.**
 
 Then:
 ```
@@ -39,7 +39,8 @@ Now that the bot is running, you have to perform some setup to make sure your bo
 Copy your full discord username (username#1234 on lower left) and paste the following command:
 
 ```!addmod <USERNAME>```
-Replace <USERNAME> with your discord username and send the message. If you get the message ``Added <USERNAME> as a moderator``, the command was successful. You can use this command to make any number of discord users moderators.
+
+Replace ```<USERNAME>``` with your discord username and send the message. If you get the message ``Added <USERNAME> as a moderator``, the command was successful. You can use this command to make any number of discord users moderators.
  
 ### Setting the moderator and mission channel ids
 
@@ -51,10 +52,12 @@ Right click on the text channel you created for moderation on the left side of y
 
 In your mod channel, type the following command:
 ```!setmodchannel <ID>```
+
 where ``<ID>`` is the id of the channel you copied. You can paste it from your clipboard and hit enter to send the command. A confirmation message should appear if the command was successful.
   
 To set your missions, channel, follow the same steps. Copy the id of the channel on the left in the list of text channels, and enter the command below in your moderation channel:
 ```!setmissionschannel <ID>```
+
 where ``<ID>`` is the id of the channel you copied. Paste it and hit enter. 
   
 ## Allowing players to join

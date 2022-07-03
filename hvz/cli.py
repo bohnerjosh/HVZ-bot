@@ -199,12 +199,6 @@ class CLI(object):
     async def connect_mission(ctx):
         # grab the username of the sender and verify that they are registered and a mod
         username = str(ctx.author)
-        result = hvz.check_player(username)
-        
-        if not result:
-            await ctx.send("You must be registered to create missions") 
-            return
-
         if not username in MODS or ctx.channel.id != config.params["mod_channel"]:
             await ctx.send("You do not have permission to create missions") 
     
@@ -529,6 +523,7 @@ class CLI(object):
         if len(args) < 1:
             await ctx.send("Invalid command syntax")
             return
+
         # get and check prefix is a single character
         prefix = args[0]
         username = str(ctx.author)

@@ -211,6 +211,11 @@ Allows a player to get all player's internal ids. This is for use of the stun co
 ### stats
 Generates game statistics for a player. Can be generated at any time, but it is recommended that players wait until the end of the game to see their stats.
 
+Tracks the following:
+* status - human or zombie)
+* human time - how long the player has been a human since the beginning of the game
+* stuns/tags - number of zombies stunned or humans tagged 
+
 ```!stats```
 
 ### stun

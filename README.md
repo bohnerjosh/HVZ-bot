@@ -27,7 +27,7 @@ pip install -r requirements.txt
 
 ## Run - Command Line
 ```
-source blurg.env
+source hvz.env
 ./run-bot.sh
 ```
 

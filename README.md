@@ -8,6 +8,7 @@ This program requires that you have virtualenv and python installed. You must al
 ## Installation and Development
 
 First, follow the instructions to create the discord bot for your server [here](https://discordpy.readthedocs.io/en/stable/discord.html) on discord's official website. Make sure you name the bot HVZ.
+For permissions, make sure the bot has permission to view channels, send messages, manage roles, embed links, attach files, and read message history.
 Make sure you save your token as well.
 
 Next, follow the installation instructions below:

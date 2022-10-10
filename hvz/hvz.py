@@ -49,7 +49,7 @@ class HVZ(object):
         return "ok", new_code
 
     # converts a tagged human into a zombie by verifying their killcode
-    def zombieify(self, username, code):
+    def zombieify(self, username, code, override=False):
         # verify the authenticity of the killcode
         result = self.db.has_user_code(code)
         if not len(result) > 0:
@@ -59,7 +59,7 @@ class HVZ(object):
         
         # change player data in db from human to zombie
         transfer_result = self.db.human_to_zombie(username, result) 
-        if transfer_result == "error":
+        if transfer_result == "error" and not override:
             return "illegal_zombieify", None
    
         return "ok", result

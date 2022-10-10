@@ -194,6 +194,35 @@ class CLI(object):
 
             await ctx.author.send(out_text)
     
+    @client.command(name="makeZombie", help="makes a player a zombie")
+    async def mod_make_zombie(ctx, *args):
+        username = str(ctx.author)
+        if not username in MODS or ctx.channel.id != config.params["mod_channel"]:
+            await ctx.send("You do not have permission to manually convert players")
+            return
+        if len(args) < 1:
+            await ctx.send("Invalid command syntax")
+            return
+
+        player = args[0]
+        player = hvz.check_player(player)
+        if not player:
+            await ctx.send("That player does not exist")
+            return
+
+        result, victim = hvz.zombieify(player[0].username, player[0].killcode, override=True)
+        await ctx.send(f"Zombieified {victim.username}")
+        guild = ctx.guild
+        name, disc = hvz.name_split(victim.username) # get the name and discriminator of discord username
+        # grab discord profile object
+        discord_profile = discord.utils.get(guild.members, name=name, discriminator=disc)
+        
+        # change user's discord roles from human to zombie
+        zombie_role = discord.utils.get(guild.roles, name="Zombie")
+        human_role = discord.utils.get(guild.roles, name="Human")
+        await discord_profile.remove_roles(human_role)
+        await discord_profile.add_roles(zombie_role)
+
     # Allows mods to create missions. Must be a moderator to create missions.
     @client.command(name="mission", help="Create a mission")
     async def connect_mission(ctx):
